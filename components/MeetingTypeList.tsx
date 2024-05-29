@@ -3,20 +3,27 @@
 import { useUser } from '@clerk/nextjs';
 import { Call, useStreamVideoClient } from '@stream-io/video-react-sdk';
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
-import ReactDatePicker from 'react-datepicker';
+import { useState, useEffect } from 'react';
+import ReactDatePicker, { registerLocale } from 'react-datepicker';
 import HomeCard from './HomeCard';
 import Loader from './Loader';
 import MeetingModal from './MeetingModal';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { useToast } from './ui/use-toast';
+import 'react-datepicker/dist/react-datepicker.css';
+import { database } from '../lib/firebaseConfig'; // Adjust the path to where your Firebase config is defined
+import { ref, onValue, off } from 'firebase/database';
 
 const initialValues = {
   dateTime: new Date(),
   description: '',
   link: '',
 };
+
+
+
+
 
 const MeetingTypeList = () => {
   const router = useRouter();
@@ -26,30 +33,62 @@ const MeetingTypeList = () => {
   const client = useStreamVideoClient();
   const { user } = useUser();
   const { toast } = useToast();
+  const [bookedTimes, setBookedTimes] = useState<Date[]>([]);
+  const [availableDates, setAvailableDates] = useState<Date[]>([]);
 
-  const createMeeting = async () => {
-    if (!client || !user) return;
-    try {
-      if (!values.dateTime) {
-        toast({ title: 'Please select a date and time' });
-        return;
-      }
-      const id = crypto.randomUUID();
-      const call = client.call('default', id);
-      if (!call) throw new Error('Failed to create meeting');
-      const startsAt = values.dateTime.toISOString() || new Date(Date.now()).toISOString();
-      const description = values.description || 'Instant Meeting';
-      await call.getOrCreate({ data: { starts_at: startsAt, custom: { description } } });
-      setCallDetail(call);
-      if (!values.description) {
-        router.push(`/meeting/${call.id}`);
-      }
-      toast({ title: 'Meeting Created' });
-    } catch (error) {
-      console.error(error);
-      toast({ title: 'Failed to create Meeting' });
+  useEffect(() => {
+    const datesRef = ref(database, 'date');
+    onValue(datesRef, (snapshot) => {
+        const dates = snapshot.val();
+        const loadedDates = [];
+        for (let key in dates) {
+            if (!dates[key].isBooked) {
+                loadedDates.push(new Date(dates[key].date));
+                console.log("Loaded Date: ", new Date(dates[key].date)); // Debug log
+            }
+        }
+        setAvailableDates(loadedDates);
+    });
+
+    return () => {
+        off(datesRef, 'value');
+    };
+}, []);
+
+const isDateAllowed = (date: Date): boolean => {
+  const allowed = availableDates.some(availableDate => availableDate.getTime() === date.getTime());
+  console.log("Date:", date, "Allowed:", allowed);
+  return allowed;
+};
+
+
+
+const createMeeting = async () => {
+  if (!client || !user) return;
+  try {
+    if (!values.dateTime) {
+      toast({ title: 'Please select a date and time' });
+      return;
     }
-  };
+    const id = crypto.randomUUID();
+    const call = client.call('default', id);
+    if (!call) throw new Error('Failed to create meeting');
+    const startsAt = new Date(values.dateTime).toISOString(); // Ensures the date is in ISO format with timezone
+    const description = values.description || 'Instant Meeting';
+    await call.getOrCreate({ data: { starts_at: startsAt, custom: { description } } });
+    setCallDetail(call);
+    if (!values.description) {
+      router.push(`/meeting/${call.id}`);
+    }
+    setBookedTimes([...bookedTimes, values.dateTime]);
+    toast({ title: 'Meeting Created' });
+  } catch (error) {
+    console.error(error);
+    toast({ title: 'Failed to create Meeting' });
+  }
+};
+
+
 
   if (!client || !user) return <Loader />;
 
@@ -57,22 +96,22 @@ const MeetingTypeList = () => {
 
   return (
     <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-      <HomeCard img="/icons/add-meeting.svg" title="New Meeting" description="Start an instant meeting" handleClick={() => setMeetingState('isInstantMeeting')} />
+      <HomeCard img="/icons/add-meeting.svg" title="Nytt direkt möte" description="Påbörja direkt möte" handleClick={() => setMeetingState('isInstantMeeting')} />
       <HomeCard
         img="/icons/join-meeting.svg"
-        title="Join Meeting"
+        title="Gå med möte"
         description="via invitation link"
         className="bg-blue-1"
         handleClick={() => setMeetingState('isJoiningMeeting')}
       />
       <HomeCard
         img="/icons/schedule.svg"
-        title="Schedule Meeting"
-        description="Plan your meeting"
+        title="Tidsbokat möte"
+        description="Här klickar du ifall du har bokat möte."
         className="bg-purple-1"
         handleClick={() => setMeetingState('isScheduleMeeting')}
       />
-      <HomeCard img="/icons/recordings.svg" title="View Recordings" description="Meeting Recordings" className="bg-yellow-1" handleClick={() => router.push('/recordings')} />
+      <HomeCard img="/icons/recordings.svg" title="Titta på inspelat" description="Inspelade möten" className="bg-yellow-1" handleClick={() => router.push('/recordings')} />
 
       {!callDetail ? (
         <MeetingModal isOpen={meetingState === 'isScheduleMeeting'} onClose={() => setMeetingState(undefined)} title="Create Meeting" handleClick={createMeeting}>
@@ -84,13 +123,16 @@ const MeetingTypeList = () => {
             <label className="text-base font-normal leading-[22.4px] text-sky-2">Select Date and Time</label>
             <ReactDatePicker
               selected={values.dateTime}
-              onChange={(date: Date) => setValues({ ...values, dateTime: date! })}
+              onChange={(date: Date) => setValues({ ...values, dateTime: date })}
               showTimeSelect
               timeFormat="HH:mm"
               timeIntervals={15}
               timeCaption="time"
               dateFormat="MMMM d, yyyy h:mm aa"
               className="w-full rounded bg-dark-3 p-2 focus:outline-none"
+              filterDate={isDateAllowed}
+              placeholderText="Select a date and time"
+       
             />
           </div>
         </MeetingModal>
@@ -98,10 +140,10 @@ const MeetingTypeList = () => {
         <MeetingModal
           isOpen={meetingState === 'isScheduleMeeting'}
           onClose={() => setMeetingState(undefined)}
-          title="Meeting Created"
+          title="Mötet skapat"
           handleClick={() => {
             navigator.clipboard.writeText(meetingLink);
-            toast({ title: 'Link Copied' });
+            toast({ title: 'Länk kopierad' });
           }}
           image={'/icons/checked.svg'}
           buttonIcon="/icons/copy.svg"
@@ -113,12 +155,12 @@ const MeetingTypeList = () => {
       <MeetingModal
         isOpen={meetingState === 'isJoiningMeeting'}
         onClose={() => setMeetingState(undefined)}
-        title="Type the link here"
+        title="Klistra in länk här"
         className="text-center"
-        buttonText="Join Meeting"
+        buttonText="Gå med mötet"
         handleClick={() => router.push(values.link)}>
         <Input
-          placeholder="Meeting link"
+          placeholder="Möteslänk"
           onChange={e => setValues({ ...values, link: e.target.value })}
           className="border-none bg-dark-3 focus-visible:ring-0 focus-visible:ring-offset-0"
         />
@@ -127,9 +169,10 @@ const MeetingTypeList = () => {
       <MeetingModal
         isOpen={meetingState === 'isInstantMeeting'}
         onClose={() => setMeetingState(undefined)}
-        title="Start an Instant Meeting"
+        
+        title="Starta ett nytt möte"
         className="text-center"
-        buttonText="Start Meeting"
+        buttonText="Påbörja nytt möte"
         handleClick={createMeeting}
       />
     </section>

@@ -11,10 +11,10 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'YOOM',
+  title: 'Formd Video BETA',
   description: 'Video calling App',
   icons: {
-    icon: '/icons/logo.svg',
+    icon: '/icons/FORMD.png',
   },
 };
 
@@ -25,7 +25,7 @@ export default function RootLayout({ children }: Readonly<{ children: ReactNode 
         appearance={{
           layout: {
             socialButtonsVariant: 'iconButton',
-            logoImageUrl: '/icons/yoom-logo.svg',
+            logoImageUrl: '/icons/FORMD.png',
           },
           variables: {
             colorText: '#fff',

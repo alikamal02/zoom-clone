@@ -70,7 +70,8 @@ const MeetingSetup = ({
             checked={isMicCamToggled}
             onChange={(e) => setIsMicCamToggled(e.target.checked)}
           />
-          Join with mic and camera off
+         
+          Anslut med mikrofon och avstängd kamera
         </label>
         <DeviceSettings />
       </div>
@@ -82,7 +83,7 @@ const MeetingSetup = ({
           setIsSetupComplete(true);
         }}
       >
-        Join meeting
+       Anslut till möte
       </Button>
     </div>
   );
