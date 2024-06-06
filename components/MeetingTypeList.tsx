@@ -1,7 +1,7 @@
 /* eslint-disable camelcase */
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
 import HomeCard from './HomeCard';
@@ -13,12 +13,19 @@ import { Textarea } from './ui/textarea';
 import ReactDatePicker from 'react-datepicker';
 import { useToast } from './ui/use-toast';
 import { Input } from './ui/input';
+import { ref, onValue } from 'firebase/database';
+import { database } from '../lib/firebaseConfig'; // Ensure this path is correct
 
 const initialValues = {
   dateTime: new Date(),
   description: '',
   link: '',
 };
+
+interface DateEntry {
+  date: string;
+  isBooked: boolean;
+}
 
 const MeetingTypeList = () => {
   const router = useRouter();
@@ -30,12 +37,33 @@ const MeetingTypeList = () => {
   const client = useStreamVideoClient();
   const { user } = useUser();
   const { toast } = useToast();
+  const [availableDates, setAvailableDates] = useState<Date[]>([]);
+
+  useEffect(() => {
+    console.log("useEffect called");
+    const datesRef = ref(database, 'dates');
+    onValue(datesRef, (snapshot) => {
+      const data: Record<string, DateEntry> | null = snapshot.val();
+      console.log("Data from Firebase:", data);
+      if (data) {
+        const dates = Object.entries(data)
+          .filter(([_, value]) => !value.isBooked)
+          .map(([_, value]) => new Date(value.date));
+        console.log("Filtered dates:", dates);
+        setAvailableDates(dates);
+      } else {
+        console.log("No data available");
+      }
+    }, (error) => {
+      console.error("Error fetching data:", error);
+    });
+  }, []);
 
   const createMeeting = async () => {
     if (!client || !user) return;
     try {
       if (!values.dateTime) {
-        toast({ title: 'Please select a date and time' });
+        toast({ title: 'Välj datum och tid' });
         return;
       }
       const id = crypto.randomUUID();
@@ -57,7 +85,7 @@ const MeetingTypeList = () => {
         router.push(`/meeting/${call.id}`);
       }
       toast({
-        title: 'Meeting Created',
+        title: 'Möte är skapad',
       });
     } catch (error) {
       console.error(error);
@@ -88,7 +116,7 @@ const MeetingTypeList = () => {
         img="/icons/schedule.svg"
         title="Tidsboka möte"
         description="Boka ditt möte"
-           className="bg-purple-600"
+        className="bg-purple-600"
         handleClick={() => setMeetingState('isScheduleMeeting')}
       />
       <HomeCard
@@ -108,7 +136,7 @@ const MeetingTypeList = () => {
         >
           <div className="flex flex-col gap-2.5">
             <label className="text-base font-normal leading-[22.4px] text-sky-2">
-              Add a description
+             Lägg till noteringar
             </label>
             <Textarea
               className="border-none bg-dark-3 focus-visible:ring-0 focus-visible:ring-offset-0"
@@ -122,25 +150,37 @@ const MeetingTypeList = () => {
               Välj datum och tid
             </label>
             <ReactDatePicker
-              selected={values.dateTime}
-              onChange={(date) => setValues({ ...values, dateTime: date! })}
-              showTimeSelect
-              timeFormat="HH:mm"
-              timeIntervals={15}
-              timeCaption="time"
-              dateFormat="MMMM d, yyyy h:mm aa"
-              className="w-full rounded bg-dark-3 p-2 focus:outline-none"
-            />
+  selected={values.dateTime}
+  onChange={(date) => setValues({ ...values, dateTime: date! })}
+  showTimeSelect
+  timeFormat="HH:mm"
+  timeIntervals={15}
+  timeCaption="time"
+  dateFormat="MMMM d, yyyy h:mm aa"
+  className="w-full rounded bg-dark-3 p-2 focus:outline-none"
+  filterDate={(date) => availableDates.some(d => d.toDateString() === date.toDateString())}
+  filterTime={(time) => availableDates.some(d => d.getTime() === time.getTime())}
+/>
+
+
+          </div>
+          <div>
+            <h2>Lediga datum och tider:</h2>
+            <ul>
+              {availableDates.map((date, index) => (
+                <li key={index}>{date.toString()}</li>
+              ))}
+            </ul>
           </div>
         </MeetingModal>
       ) : (
         <MeetingModal
           isOpen={meetingState === 'isScheduleMeeting'}
           onClose={() => setMeetingState(undefined)}
-          title="Meeting Created"
+          title="Möte är skapad"
           handleClick={() => {
             navigator.clipboard.writeText(meetingLink);
-            toast({ title: 'Link Copied' });
+            toast({ title: 'Länk är kopierad' });
           }}
           image={'/icons/checked.svg'}
           buttonIcon="/icons/copy.svg"
@@ -167,7 +207,7 @@ const MeetingTypeList = () => {
       <MeetingModal
         isOpen={meetingState === 'isInstantMeeting'}
         onClose={() => setMeetingState(undefined)}
-        title="Start an Instant Meeting"
+        title="Starta direkt möte"
         className="text-center"
         buttonText="Start Meeting"
         handleClick={createMeeting}
