@@ -81,21 +81,21 @@ const MeetingTypeList = () => {
         img="/icons/join-meeting.svg"
         title="Anslut till möte"
         description="Anslut via länk"
-        className="bg-blue-1"
+        className="bg-purple-600"
         handleClick={() => setMeetingState('isJoiningMeeting')}
       />
       <HomeCard
         img="/icons/schedule.svg"
         title="Tidsboka möte"
         description="Boka ditt möte"
-        className="bg-purple-1"
+        className="bg-purple-600"
         handleClick={() => setMeetingState('isScheduleMeeting')}
       />
       <HomeCard
         img="/icons/recordings.svg"
         title="Se inspelning"
         description="Inspelningar"
-        className="bg-yellow-1"
+        className="bg-purple-500" 
         handleClick={() => router.push('/recordings')}
       />
 
