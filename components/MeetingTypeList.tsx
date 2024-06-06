@@ -88,7 +88,7 @@ const MeetingTypeList = () => {
         img="/icons/schedule.svg"
         title="Tidsboka möte"
         description="Boka ditt möte"
-        className="bg-purple-600"
+           className="bg-purple-600"
         handleClick={() => setMeetingState('isScheduleMeeting')}
       />
       <HomeCard
@@ -119,7 +119,7 @@ const MeetingTypeList = () => {
           </div>
           <div className="flex w-full flex-col gap-2.5">
             <label className="text-base font-normal leading-[22.4px] text-sky-2">
-              Select Date and Time
+              Välj datum och tid
             </label>
             <ReactDatePicker
               selected={values.dateTime}

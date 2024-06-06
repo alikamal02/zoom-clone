@@ -3,7 +3,7 @@ import { initializeApp } from "firebase/app";
 import { getDatabase } from "firebase/database";  
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDEUcNJZMcvgRNVzYnpQv43wLky7MCU05Y",
+  apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: "formdvideo.firebaseapp.com",
   databaseURL: "https://formdvideo-default-rtdb.europe-west1.firebasedatabase.app",
   projectId: "formdvideo",
