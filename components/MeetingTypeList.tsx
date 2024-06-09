@@ -49,6 +49,7 @@ const MeetingTypeList = () => {
         const dates = Object.entries(data)
           .filter(([_, value]) => !value.isBooked)
           .map(([_, value]) => new Date(value.date));
+       
         console.log("Filtered dates:", dates);
         setAvailableDates(dates);
       } else {
@@ -58,7 +59,11 @@ const MeetingTypeList = () => {
       console.error("Error fetching data:", error);
     });
   }, []);
-
+  const handleDateChange = (date: Date) => {
+    const adjustedDate = new Date(date);
+    adjustedDate.setHours(date.getHours() - 2);
+    setValues({ ...values, dateTime: adjustedDate });
+  };
   const createMeeting = async () => {
     if (!client || !user) return;
     try {
@@ -92,6 +97,8 @@ const MeetingTypeList = () => {
       toast({ title: 'Failed to create Meeting' });
     }
   };
+
+  
 
   if (!client || !user) return <Loader />;
 
@@ -150,18 +157,17 @@ const MeetingTypeList = () => {
               Välj datum och tid
             </label>
             <ReactDatePicker
-  selected={values.dateTime}
-  onChange={(date) => setValues({ ...values, dateTime: date! })}
-  showTimeSelect
-  timeFormat="HH:mm"
-  timeIntervals={15}
-  timeCaption="time"
-  dateFormat="MMMM d, yyyy h:mm aa"
-  className="w-full rounded bg-dark-3 p-2 focus:outline-none"
-  filterDate={(date) => availableDates.some(d => d.toDateString() === date.toDateString())}
-  filterTime={(time) => availableDates.some(d => d.getTime() === time.getTime())}
-/>
-
+        selected={values.dateTime}
+        onChange={handleDateChange}
+        showTimeSelect
+        timeFormat="HH:mm"
+        timeIntervals={15}
+        timeCaption="time"
+        dateFormat="MMMM d, yyyy h:mm aa"
+        className="w-full rounded bg-dark-3 p-2 focus:outline-none"
+        filterDate={(date) => availableDates.some(d => d.toDateString() === date.toDateString())}
+        filterTime={(time) => availableDates.some(d => d.getTime() === time.getTime())}
+      />
 
           </div>
           <div>
@@ -185,7 +191,7 @@ const MeetingTypeList = () => {
           image={'/icons/checked.svg'}
           buttonIcon="/icons/copy.svg"
           className="text-center"
-          buttonText="Copy Meeting Link"
+          buttonText="Kopiera länk"
         />
       )}
 
@@ -209,7 +215,7 @@ const MeetingTypeList = () => {
         onClose={() => setMeetingState(undefined)}
         title="Starta direkt möte"
         className="text-center"
-        buttonText="Start Meeting"
+        buttonText="Starta möte"
         handleClick={createMeeting}
       />
     </section>

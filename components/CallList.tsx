@@ -30,11 +30,11 @@ const CallList = ({ type }: { type: 'ended' | 'upcoming' | 'recordings' }) => {
   const getNoCallsMessage = () => {
     switch (type) {
       case 'ended':
-        return 'No Previous Calls';
+        return 'Inga tidigare samtal';
       case 'upcoming':
-        return 'No Upcoming Calls';
+        return 'Inga nya samtal';
       case 'recordings':
-        return 'No Recordings';
+        return 'Inga inspelningar';
       default:
         return '';
     }
@@ -79,7 +79,7 @@ const CallList = ({ type }: { type: 'ended' | 'upcoming' | 'recordings' }) => {
             title={
               (meeting as Call).state?.custom?.description ||
               (meeting as CallRecording).filename?.substring(0, 20) ||
-              'No Description'
+              'Ingen beskrivning'
             }
             date={
               (meeting as Call).state?.startsAt?.toLocaleString() ||
