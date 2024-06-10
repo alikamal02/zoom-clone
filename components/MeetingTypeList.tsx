@@ -106,7 +106,9 @@ const MeetingTypeList = () => {
 
   return (
     <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
+      
     
+      
       <HomeCard
         img="/icons/join-meeting.svg"
         title="Anslut till möte"
@@ -133,7 +135,7 @@ const MeetingTypeList = () => {
         <MeetingModal
           isOpen={meetingState === 'isScheduleMeeting'}
           onClose={() => setMeetingState(undefined)}
-          title="Create Meeting"
+          title="Skapa möte"
           handleClick={createMeeting}
         >
           <div className="flex flex-col gap-2.5">
@@ -178,7 +180,7 @@ const MeetingTypeList = () => {
         <MeetingModal
           isOpen={meetingState === 'isScheduleMeeting'}
           onClose={() => setMeetingState(undefined)}
-          title="Möte är skapad"
+          title="Mötet är skapad"
           handleClick={() => {
             navigator.clipboard.writeText(meetingLink);
             toast({ title: 'Länk är kopierad' });
