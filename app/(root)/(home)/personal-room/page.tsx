@@ -59,7 +59,7 @@ const PersonalRoom = () => {
             navigator.clipboard.writeText(meetingLink);
             toast({ title: 'Link Copied' });
           }}>
-         Kopia länk
+         Kopiera länk
         </Button>
       </div>
     </section>

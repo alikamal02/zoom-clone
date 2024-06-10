@@ -76,7 +76,7 @@ const MeetingTypeList = () => {
       if (!call) throw new Error('Failed to create meeting');
       const startsAt =
         values.dateTime.toISOString() || new Date(Date.now()).toISOString();
-      const description = values.description || 'Instant Meeting';
+      const description = values.description || 'Möte';
       await call.getOrCreate({
         data: {
           starts_at: startsAt,
@@ -106,12 +106,7 @@ const MeetingTypeList = () => {
 
   return (
     <section className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4">
-      <HomeCard
-        img="/icons/add-meeting.svg"
-        title="Direkt möte"
-        description="Skapa direkt möte"
-        handleClick={() => setMeetingState('isInstantMeeting')}
-      />
+    
       <HomeCard
         img="/icons/join-meeting.svg"
         title="Anslut till möte"
@@ -200,11 +195,11 @@ const MeetingTypeList = () => {
         onClose={() => setMeetingState(undefined)}
         title="Bifoga länk här"
         className="text-center"
-        buttonText="Join Meeting"
+        buttonText="Anslut till möte"
         handleClick={() => router.push(values.link)}
       >
         <Input
-          placeholder="Meeting link"
+          placeholder="Mötes länk"
           onChange={(e) => setValues({ ...values, link: e.target.value })}
           className="border-none bg-dark-3 focus-visible:ring-0 focus-visible:ring-offset-0"
         />
