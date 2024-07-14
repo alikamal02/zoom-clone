@@ -5,7 +5,7 @@ import { getDatabase } from "firebase/database";
 const firebaseConfig = {
   apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
   authDomain: "formdvideo.firebaseapp.com",
-  databaseURL: "https://formdvideo-default-rtdb.europe-west1.firebasedatabase.app",
+  databaseURL: "https://formdbeta2-3ad4d-default-rtdb.europe-west1.firebasedatabase.app/",
   projectId: "formdvideo",
   storageBucket: "formdvideo.appspot.com",
   messagingSenderId: "546968852990",
